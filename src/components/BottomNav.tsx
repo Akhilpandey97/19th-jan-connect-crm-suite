@@ -1,4 +1,4 @@
-import { Phone, Users, Clock, Settings, Grid3X3 } from 'lucide-react';
+import { Phone, Users, Clock, Settings, Grid3X3, Target, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface BottomNavProps {
@@ -7,8 +7,8 @@ interface BottomNavProps {
 }
 
 const navItems = [
-  { id: 'contacts', icon: Users, label: 'Contacts' },
-  { id: 'recents', icon: Clock, label: 'Recents' },
+  { id: 'leads', icon: Target, label: 'Leads' },
+  { id: 'activity', icon: Activity, label: 'Activity' },
   { id: 'dialpad', icon: Grid3X3, label: 'Dial' },
   { id: 'integrations', icon: Phone, label: 'CRMs' },
   { id: 'settings', icon: Settings, label: 'Settings' },
