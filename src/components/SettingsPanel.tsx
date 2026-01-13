@@ -1,0 +1,110 @@
+import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Smartphone } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import { useState } from 'react';
+
+const SettingsPanel = () => {
+  const [notifications, setNotifications] = useState(true);
+  const [callRecording, setCallRecording] = useState(false);
+
+  const menuItems = [
+    { icon: User, label: 'Account Settings', hasChevron: true },
+    { icon: Smartphone, label: 'SIM Card Settings', hasChevron: true },
+    { icon: Shield, label: 'Privacy & Security', hasChevron: true },
+    { icon: HelpCircle, label: 'Help & Support', hasChevron: true },
+  ];
+
+  return (
+    <div className="pb-20">
+      {/* Profile Header */}
+      <div className="px-4 pt-6 pb-8">
+        <div className="glass-card p-6 flex items-center gap-4">
+          <Avatar className="w-16 h-16 bg-gradient-to-br from-primary to-accent">
+            <AvatarFallback className="bg-transparent text-primary-foreground text-xl font-semibold">
+              JD
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">John Doe</h2>
+            <p className="text-sm text-muted-foreground">Sales Representative</p>
+            <p className="text-xs text-primary mt-1">Premium Plan</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Settings */}
+      <div className="px-4 mb-6">
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">Quick Settings</h2>
+        <div className="glass-card divide-y divide-border">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <span className="text-foreground">Push Notifications</span>
+            </div>
+            <Switch checked={notifications} onCheckedChange={setNotifications} />
+          </div>
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-muted-foreground" />
+              <span className="text-foreground">Call Recording</span>
+            </div>
+            <Switch checked={callRecording} onCheckedChange={setCallRecording} />
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Items */}
+      <div className="px-4 mb-6">
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">Settings</h2>
+        <div className="glass-card divide-y divide-border">
+          {menuItems.map((item, index) => (
+            <motion.button
+              key={item.label}
+              whileTap={{ scale: 0.98 }}
+              className="w-full p-4 flex items-center justify-between hover:bg-secondary/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className="w-5 h-5 text-muted-foreground" />
+                <span className="text-foreground">{item.label}</span>
+              </div>
+              {item.hasChevron && <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="px-4 mb-6">
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">This Month</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="glass-card p-4 text-center">
+            <p className="text-2xl font-bold gradient-text">147</p>
+            <p className="text-xs text-muted-foreground">Calls Made</p>
+          </div>
+          <div className="glass-card p-4 text-center">
+            <p className="text-2xl font-bold text-success">23</p>
+            <p className="text-xs text-muted-foreground">Deals Closed</p>
+          </div>
+          <div className="glass-card p-4 text-center">
+            <p className="text-2xl font-bold text-accent">4.2h</p>
+            <p className="text-xs text-muted-foreground">Talk Time</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div className="px-4">
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          className="w-full glass-card p-4 flex items-center justify-center gap-2 text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Sign Out</span>
+        </motion.button>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsPanel;
