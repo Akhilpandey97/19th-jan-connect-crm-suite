@@ -413,6 +413,9 @@ const LeadsPanel = ({ onCall, onWhatsApp }: LeadsPanelProps) => {
         onClose={() => setSelectedLead(null)}
         onCall={onCall}
         onWhatsApp={onWhatsApp}
+        onStatusChange={(leadId, newStatus) => {
+          updateLead.mutate({ id: leadId, status: newStatus });
+        }}
       />
     </div>
   );
