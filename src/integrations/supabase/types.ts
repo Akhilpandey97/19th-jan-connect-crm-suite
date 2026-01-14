@@ -58,6 +58,85 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          lead_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id: string
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           company: string | null
@@ -117,6 +196,7 @@ export type Database = {
         | "negotiation"
         | "won"
         | "lost"
+      task_status: "pending" | "in_progress" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -254,6 +334,7 @@ export const Constants = {
         "won",
         "lost",
       ],
+      task_status: ["pending", "in_progress", "completed", "cancelled"],
     },
   },
 } as const

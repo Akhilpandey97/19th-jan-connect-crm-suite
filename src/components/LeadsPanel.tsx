@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import LeadDetailSheet from '@/components/LeadDetailSheet';
 
 interface LeadsPanelProps {
   onCall: (phone: string, name: string) => void;
@@ -53,6 +54,7 @@ const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -332,7 +334,8 @@ const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ delay: index * 0.03 }}
-                  className="glass-card p-4"
+                  className="glass-card p-4 cursor-pointer"
+                  onClick={() => setSelectedLead(lead)}
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="w-12 h-12 bg-gradient-to-br from-primary to-accent">
@@ -358,19 +361,28 @@ const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
                       )}
                       <div className="flex gap-1">
                         <button
-                          onClick={() => onCall(lead.phone, lead.name)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCall(lead.phone, lead.name);
+                          }}
                           className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center"
                         >
                           <Phone className="w-3.5 h-3.5 text-success" />
                         </button>
                         <button
-                          onClick={() => handleEdit(lead)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(lead);
+                          }}
                           className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center"
                         >
                           <Edit2 className="w-3.5 h-3.5 text-primary" />
                         </button>
                         <button
-                          onClick={() => deleteLead.mutate(lead.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteLead.mutate(lead.id);
+                          }}
                           className="w-8 h-8 rounded-full bg-destructive/20 flex items-center justify-center"
                         >
                           <Trash2 className="w-3.5 h-3.5 text-destructive" />
@@ -392,6 +404,14 @@ const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
           </AnimatePresence>
         )}
       </div>
+
+      {/* Lead Detail Sheet */}
+      <LeadDetailSheet
+        lead={selectedLead}
+        isOpen={!!selectedLead}
+        onClose={() => setSelectedLead(null)}
+        onCall={onCall}
+      />
     </div>
   );
 };
