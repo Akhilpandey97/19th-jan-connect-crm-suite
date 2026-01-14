@@ -1,0 +1,25 @@
+<!-- Add these permissions to android/app/src/main/AndroidManifest.xml -->
+<!-- Place inside the <manifest> tag, before <application> -->
+
+<!-- Call Log Access -->
+<uses-permission android:name="android.permission.READ_CALL_LOG" />
+<uses-permission android:name="android.permission.WRITE_CALL_LOG" />
+
+<!-- Phone State for detecting calls -->
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+
+<!-- Microphone for call recording -->
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+<!-- Storage for saving recordings -->
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+<!-- Internet for syncing -->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+<!-- Foreground service for call detection -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
