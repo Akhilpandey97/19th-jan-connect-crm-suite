@@ -25,7 +25,8 @@ import { Textarea } from '@/components/ui/textarea';
 import LeadDetailSheet from '@/components/LeadDetailSheet';
 
 interface LeadsPanelProps {
-  onCall: (phone: string, name: string) => void;
+  onCall: (phone: string, name: string, leadId?: string) => void;
+  onWhatsApp: (phone: string, name: string, leadId?: string) => void;
 }
 
 const statusColors: Record<LeadStatus, string> = {
@@ -48,7 +49,7 @@ const statusLabels: Record<LeadStatus, string> = {
   lost: 'Lost',
 };
 
-const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
+const LeadsPanel = ({ onCall, onWhatsApp }: LeadsPanelProps) => {
   const { leads, isLoading, createLead, updateLead, deleteLead } = useLeads();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
@@ -363,7 +364,7 @@ const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onCall(lead.phone, lead.name);
+                            onCall(lead.phone, lead.name, lead.id);
                           }}
                           className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center"
                         >
@@ -411,6 +412,7 @@ const LeadsPanel = ({ onCall }: LeadsPanelProps) => {
         isOpen={!!selectedLead}
         onClose={() => setSelectedLead(null)}
         onCall={onCall}
+        onWhatsApp={onWhatsApp}
       />
     </div>
   );
