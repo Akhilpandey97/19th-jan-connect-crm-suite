@@ -25,6 +25,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 
 interface LeadDetailSheetProps {
@@ -33,6 +39,7 @@ interface LeadDetailSheetProps {
   onClose: () => void;
   onCall: (phone: string, name: string, leadId?: string) => void;
   onWhatsApp: (phone: string, name: string, leadId?: string) => void;
+  onStatusChange?: (leadId: string, newStatus: LeadStatus) => void;
 }
 
 const statusColors: Record<LeadStatus, string> = {
@@ -71,7 +78,9 @@ const activityIcons: Record<ActivityType, React.ReactNode> = {
   status_change: <Activity className="w-4 h-4" />,
 };
 
-const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp }: LeadDetailSheetProps) => {
+const allStatuses: LeadStatus[] = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
+
+const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusChange }: LeadDetailSheetProps) => {
   const { tasks, createTask } = useLeadTasks(lead?.id ?? null);
   const { activities, createActivity } = useLeadActivities(lead?.id ?? null);
 
@@ -201,9 +210,32 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp }: LeadDeta
               <h2 className="text-xl font-bold text-foreground">{lead.name}</h2>
               <p className="text-sm text-muted-foreground">{lead.company || 'No company'}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={statusColors[lead.status]}>
-                  {statusLabels[lead.status]}
-                </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1 focus:outline-none">
+                      <Badge variant="outline" className={`${statusColors[lead.status]} cursor-pointer hover:opacity-80 transition-opacity`}>
+                        {statusLabels[lead.status]}
+                        <ChevronDown className="w-3 h-3 ml-1" />
+                      </Badge>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-40">
+                    {allStatuses.map((status) => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => {
+                          if (onStatusChange && status !== lead.status) {
+                            onStatusChange(lead.id, status);
+                          }
+                        }}
+                        className={`flex items-center gap-2 ${status === lead.status ? 'bg-secondary' : ''}`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${statusColors[status].split(' ')[0]}`} />
+                        {statusLabels[status]}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 {lead.value && (
                   <span className="text-sm font-medium text-success">${lead.value.toLocaleString()}</span>
                 )}
