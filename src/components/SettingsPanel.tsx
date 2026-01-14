@@ -1,18 +1,21 @@
-import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Smartphone } from 'lucide-react';
+import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Smartphone, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const SettingsPanel = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(true);
   const [callRecording, setCallRecording] = useState(false);
 
   const menuItems = [
-    { icon: User, label: 'Account Settings', hasChevron: true },
-    { icon: Smartphone, label: 'SIM Card Settings', hasChevron: true },
-    { icon: Shield, label: 'Privacy & Security', hasChevron: true },
-    { icon: HelpCircle, label: 'Help & Support', hasChevron: true },
+    { icon: User, label: 'Account Settings', hasChevron: true, onClick: () => {} },
+    { icon: Smartphone, label: 'SIM Card Settings', hasChevron: true, onClick: () => {} },
+    { icon: Shield, label: 'Privacy & Security', hasChevron: true, onClick: () => {} },
+    { icon: FileText, label: 'Privacy Policy', hasChevron: true, onClick: () => navigate('/privacy') },
+    { icon: HelpCircle, label: 'Help & Support', hasChevron: true, onClick: () => {} },
   ];
 
   return (
@@ -62,6 +65,7 @@ const SettingsPanel = () => {
             <motion.button
               key={item.label}
               whileTap={{ scale: 0.98 }}
+              onClick={item.onClick}
               className="w-full p-4 flex items-center justify-between hover:bg-secondary/30 transition-colors"
             >
               <div className="flex items-center gap-3">
