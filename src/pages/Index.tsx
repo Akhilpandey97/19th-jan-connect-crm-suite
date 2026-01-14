@@ -1,6 +1,5 @@
-import { useState, useRef } from 'react';
-import { Lead } from '@/hooks/useLeads';
-import { useCallLogs, CallType } from '@/hooks/useCallLogs';
+import { useState } from 'react';
+import { useCallLogs } from '@/hooks/useCallLogs';
 import MobileLayout from '@/components/MobileLayout';
 import BottomNav from '@/components/BottomNav';
 import LeadsPanel from '@/components/LeadsPanel';
@@ -8,46 +7,42 @@ import CallActivity from '@/components/CallActivity';
 import DialPad from '@/components/DialPad';
 import CRMIntegrations from '@/components/CRMIntegrations';
 import SettingsPanel from '@/components/SettingsPanel';
-import ActiveCallSheet from '@/components/ActiveCallSheet';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('leads');
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [currentCallNumber, setCurrentCallNumber] = useState('');
-  const [currentCallName, setCurrentCallName] = useState<string | undefined>();
-  const callStartTime = useRef<number>(0);
   const { toast } = useToast();
   const { createCallLog } = useCallLogs();
 
   const handleCall = (phone: string, name?: string) => {
-    setCurrentCallNumber(phone);
-    setCurrentCallName(name);
-    setIsCallActive(true);
-    callStartTime.current = Date.now();
-  };
-
-  const handleEndCall = () => {
-    const duration = Math.floor((Date.now() - callStartTime.current) / 1000);
+    // Format phone number for India (add +91 if not present)
+    let formattedPhone = phone.replace(/\s+/g, '').replace(/-/g, '');
+    if (!formattedPhone.startsWith('+')) {
+      if (formattedPhone.startsWith('91') && formattedPhone.length > 10) {
+        formattedPhone = '+' + formattedPhone;
+      } else if (formattedPhone.length === 10) {
+        formattedPhone = '+91' + formattedPhone;
+      }
+    }
     
-    // Log the call to the database
+    // Log the call attempt
     createCallLog.mutate({
-      phone: currentCallNumber,
-      contact_name: currentCallName || null,
-      duration: duration > 2 ? duration : 0, // If under 2 seconds, consider it missed/cancelled
-      type: duration > 2 ? 'outgoing' : 'missed',
+      phone: formattedPhone,
+      contact_name: name || null,
+      duration: 0,
+      type: 'outgoing',
       lead_id: null,
       notes: null,
       outcome: null,
     });
 
-    setIsCallActive(false);
     toast({
-      title: 'Call Ended',
-      description: duration > 2 
-        ? `Duration: ${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}`
-        : 'Call was not connected',
+      title: 'Opening Phone',
+      description: `Calling ${name || formattedPhone}`,
     });
+    
+    // Open native phone dialer with tel: protocol
+    window.location.href = `tel:${formattedPhone}`;
   };
 
   const renderContent = () => {
@@ -71,13 +66,6 @@ const Index = () => {
     <MobileLayout>
       {renderContent()}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-
-      <ActiveCallSheet
-        isOpen={isCallActive}
-        onClose={handleEndCall}
-        phoneNumber={currentCallNumber}
-        contactName={currentCallName}
-      />
     </MobileLayout>
   );
 };
