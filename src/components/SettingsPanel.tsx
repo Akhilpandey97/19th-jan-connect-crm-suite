@@ -1,14 +1,18 @@
-import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Smartphone, FileText } from 'lucide-react';
+import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Smartphone, FileText, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 
 const SettingsPanel = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(true);
   const [callRecording, setCallRecording] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  const isDark = theme === 'dark';
 
   const menuItems = [
     { icon: User, label: 'Account Settings', hasChevron: true, onClick: () => {} },
@@ -40,6 +44,13 @@ const SettingsPanel = () => {
       <div className="px-4 mb-6">
         <h2 className="text-sm font-medium text-muted-foreground mb-3">Quick Settings</h2>
         <div className="glass-card divide-y divide-border">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {isDark ? <Moon className="w-5 h-5 text-muted-foreground" /> : <Sun className="w-5 h-5 text-muted-foreground" />}
+              <span className="text-foreground">Dark Mode</span>
+            </div>
+            <Switch checked={isDark} onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} />
+          </div>
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-muted-foreground" />
