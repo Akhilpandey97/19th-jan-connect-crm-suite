@@ -31,7 +31,8 @@ interface LeadDetailSheetProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
-  onCall: (phone: string, name: string) => void;
+  onCall: (phone: string, name: string, leadId?: string) => void;
+  onWhatsApp: (phone: string, name: string, leadId?: string) => void;
 }
 
 const statusColors: Record<LeadStatus, string> = {
@@ -70,7 +71,7 @@ const activityIcons: Record<ActivityType, React.ReactNode> = {
   status_change: <Activity className="w-4 h-4" />,
 };
 
-const LeadDetailSheet = ({ lead, isOpen, onClose, onCall }: LeadDetailSheetProps) => {
+const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp }: LeadDetailSheetProps) => {
   const { tasks, createTask } = useLeadTasks(lead?.id ?? null);
   const { activities, createActivity } = useLeadActivities(lead?.id ?? null);
 
@@ -214,7 +215,7 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall }: LeadDetailSheetProps
           <div className="flex gap-3 mt-4">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => onCall(lead.phone, lead.name)}
+              onClick={() => onCall(lead.phone, lead.name, lead.id)}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-success/20 text-success"
             >
               <Phone className="w-4 h-4" />
@@ -222,6 +223,11 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall }: LeadDetailSheetProps
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (lead.email) {
+                  window.location.href = `mailto:${lead.email}`;
+                }
+              }}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/20 text-primary"
             >
               <Mail className="w-4 h-4" />
@@ -229,10 +235,11 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall }: LeadDetailSheetProps
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-accent/20 text-accent"
+              onClick={() => onWhatsApp(lead.phone, lead.name, lead.id)}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 text-[#25D366]"
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="text-sm font-medium">Message</span>
+              <span className="text-sm font-medium">WhatsApp</span>
             </motion.button>
           </div>
         </div>

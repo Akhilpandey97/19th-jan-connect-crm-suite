@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useCallLogs } from '@/hooks/useCallLogs';
+import { useLeadActivities } from '@/hooks/useLeadActivities';
+import { supabase } from '@/integrations/supabase/client';
 import MobileLayout from '@/components/MobileLayout';
 import BottomNav from '@/components/BottomNav';
 import LeadsPanel from '@/components/LeadsPanel';
@@ -14,8 +16,8 @@ const Index = () => {
   const { toast } = useToast();
   const { createCallLog } = useCallLogs();
 
-  const handleCall = (phone: string, name?: string) => {
-    // Format phone number for India (add +91 if not present)
+  // Format phone for India
+  const formatPhone = (phone: string): string => {
     let formattedPhone = phone.replace(/\s+/g, '').replace(/-/g, '');
     if (!formattedPhone.startsWith('+')) {
       if (formattedPhone.startsWith('91') && formattedPhone.length > 10) {
@@ -24,17 +26,42 @@ const Index = () => {
         formattedPhone = '+91' + formattedPhone;
       }
     }
+    return formattedPhone;
+  };
+
+  // Create activity in database
+  const createActivity = async (leadId: string, type: string, title: string, description?: string) => {
+    try {
+      await supabase.from('lead_activities').insert({
+        lead_id: leadId,
+        type,
+        title,
+        description: description || null,
+        metadata: {},
+      });
+    } catch (error) {
+      console.error('Failed to create activity:', error);
+    }
+  };
+
+  const handleCall = (phone: string, name?: string, leadId?: string) => {
+    const formattedPhone = formatPhone(phone);
     
-    // Log the call attempt
+    // Log the call to database
     createCallLog.mutate({
       phone: formattedPhone,
       contact_name: name || null,
       duration: 0,
       type: 'outgoing',
-      lead_id: null,
+      lead_id: leadId || null,
       notes: null,
       outcome: null,
     });
+
+    // Create activity if leadId provided
+    if (leadId) {
+      createActivity(leadId, 'call', `Outgoing call to ${name || formattedPhone}`, `Called ${formattedPhone}`);
+    }
 
     toast({
       title: 'Opening Phone',
@@ -45,10 +72,29 @@ const Index = () => {
     window.location.href = `tel:${formattedPhone}`;
   };
 
+  const handleWhatsApp = (phone: string, name?: string, leadId?: string) => {
+    const formattedPhone = formatPhone(phone);
+    // Remove + for WhatsApp URL
+    const waNumber = formattedPhone.replace('+', '');
+    
+    // Create activity if leadId provided
+    if (leadId) {
+      createActivity(leadId, 'message', `WhatsApp chat with ${name || formattedPhone}`, `Opened WhatsApp chat with ${waNumber}`);
+    }
+
+    toast({
+      title: 'Opening WhatsApp',
+      description: `Chatting with ${name || formattedPhone}`,
+    });
+    
+    // Open WhatsApp with phone number
+    window.location.href = `https://wa.me/${waNumber}`;
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'leads':
-        return <LeadsPanel onCall={handleCall} />;
+        return <LeadsPanel onCall={handleCall} onWhatsApp={handleWhatsApp} />;
       case 'activity':
         return <CallActivity onCall={handleCall} />;
       case 'dialpad':
@@ -58,7 +104,7 @@ const Index = () => {
       case 'settings':
         return <SettingsPanel />;
       default:
-        return <LeadsPanel onCall={handleCall} />;
+        return <LeadsPanel onCall={handleCall} onWhatsApp={handleWhatsApp} />;
     }
   };
 
