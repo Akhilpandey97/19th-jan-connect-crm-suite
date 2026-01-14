@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Filter, TrendingUp, Phone, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, Filter, TrendingUp, Phone, ChevronRight, Edit2, Trash2, MessageCircle, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLeads, Lead, LeadStatus } from '@/hooks/useLeads';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -20,9 +20,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import LeadDetailSheet from '@/components/LeadDetailSheet';
+
+const allStatuses: LeadStatus[] = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
 
 interface LeadsPanelProps {
   onCall: (phone: string, name: string, leadId?: string) => void;
@@ -348,9 +356,36 @@ const LeadsPanel = ({ onCall, onWhatsApp }: LeadsPanelProps) => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-foreground truncate">{lead.name}</h3>
-                        <Badge variant="outline" className={`text-[10px] ${statusColors[lead.status]}`}>
-                          {statusLabels[lead.status]}
-                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button 
+                              className="flex items-center gap-0.5 focus:outline-none"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Badge variant="outline" className={`text-[10px] ${statusColors[lead.status]} cursor-pointer hover:opacity-80 transition-opacity`}>
+                                {statusLabels[lead.status]}
+                                <ChevronDown className="w-2.5 h-2.5 ml-0.5" />
+                              </Badge>
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-36">
+                            {allStatuses.map((status) => (
+                              <DropdownMenuItem
+                                key={status}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (status !== lead.status) {
+                                    updateLead.mutate({ id: lead.id, status });
+                                  }
+                                }}
+                                className={`flex items-center gap-2 ${status === lead.status ? 'bg-secondary' : ''}`}
+                              >
+                                <span className={`w-2 h-2 rounded-full ${statusColors[status].split(' ')[0]}`} />
+                                {statusLabels[status]}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">{lead.company || 'No company'}</p>
                       <p className="text-xs text-muted-foreground/70">{lead.phone}</p>
@@ -369,6 +404,15 @@ const LeadsPanel = ({ onCall, onWhatsApp }: LeadsPanelProps) => {
                           className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center"
                         >
                           <Phone className="w-3.5 h-3.5 text-success" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onWhatsApp(lead.phone, lead.name, lead.id);
+                          }}
+                          className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 text-green-500" />
                         </button>
                         <button
                           onClick={(e) => {
