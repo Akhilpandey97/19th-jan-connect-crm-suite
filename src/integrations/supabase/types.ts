@@ -25,6 +25,7 @@ export type Database = {
           outcome: string | null
           phone: string
           type: Database["public"]["Enums"]["call_type"]
+          user_id: string | null
         }
         Insert: {
           contact_name?: string | null
@@ -36,6 +37,7 @@ export type Database = {
           outcome?: string | null
           phone: string
           type: Database["public"]["Enums"]["call_type"]
+          user_id?: string | null
         }
         Update: {
           contact_name?: string | null
@@ -47,6 +49,7 @@ export type Database = {
           outcome?: string | null
           phone?: string
           type?: Database["public"]["Enums"]["call_type"]
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -67,6 +70,7 @@ export type Database = {
           metadata: Json | null
           title: string
           type: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -76,6 +80,7 @@ export type Database = {
           metadata?: Json | null
           title: string
           type: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -85,6 +90,7 @@ export type Database = {
           metadata?: Json | null
           title?: string
           type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -106,6 +112,7 @@ export type Database = {
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -116,6 +123,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -126,6 +134,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -149,6 +158,7 @@ export type Database = {
           source: string | null
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
+          user_id: string | null
           value: number | null
         }
         Insert: {
@@ -162,6 +172,7 @@ export type Database = {
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
+          user_id?: string | null
           value?: number | null
         }
         Update: {
@@ -175,7 +186,56 @@ export type Database = {
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
+          user_id?: string | null
           value?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -184,9 +244,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "sales"
       call_type: "incoming" | "outgoing" | "missed"
       lead_status:
         | "new"
@@ -324,6 +395,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "sales"],
       call_type: ["incoming", "outgoing", "missed"],
       lead_status: [
         "new",

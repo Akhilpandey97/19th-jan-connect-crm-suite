@@ -62,7 +62,7 @@ export const useLeadActivities = (leadId: string | null) => {
   }, [leadId, queryClient]);
 
   const createActivity = useMutation({
-    mutationFn: async (activity: Omit<LeadActivity, 'id' | 'created_at'>) => {
+    mutationFn: async (activity: Omit<LeadActivity, 'id' | 'created_at'> & { user_id?: string }) => {
       const { data, error } = await supabase
         .from('lead_activities')
         .insert([{
@@ -71,6 +71,7 @@ export const useLeadActivities = (leadId: string | null) => {
           title: activity.title,
           description: activity.description,
           metadata: activity.metadata,
+          user_id: activity.user_id,
         }])
         .select()
         .single();

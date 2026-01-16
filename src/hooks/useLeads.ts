@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
 
@@ -16,11 +17,13 @@ export interface Lead {
   value: number | null;
   created_at: string;
   updated_at: string;
+  user_id: string | null;
 }
 
 export const useLeads = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: leads = [], isLoading, error } = useQuery({
     queryKey: ['leads'],
@@ -33,13 +36,16 @@ export const useLeads = () => {
       if (error) throw error;
       return data as Lead[];
     },
+    enabled: !!user,
   });
 
   const createLead = useMutation({
-    mutationFn: async (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('leads')
-        .insert(lead)
+        .insert({ ...lead, user_id: user.id })
         .select()
         .single();
 
