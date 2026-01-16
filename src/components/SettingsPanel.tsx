@@ -5,14 +5,27 @@ import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SettingsPanel = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(true);
   const [callRecording, setCallRecording] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
   const isDark = theme === 'dark';
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  // Get user initials
+  const getInitials = () => {
+    if (!user?.email) return 'U';
+    return user.email.charAt(0).toUpperCase();
+  };
 
   const menuItems = [
     { icon: User, label: 'Account Settings', hasChevron: true, onClick: () => {} },
@@ -29,13 +42,13 @@ const SettingsPanel = () => {
         <div className="glass-card p-6 flex items-center gap-4">
           <Avatar className="w-16 h-16 bg-gradient-to-br from-primary to-accent">
             <AvatarFallback className="bg-transparent text-primary-foreground text-xl font-semibold">
-              JD
+              {getInitials()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-xl font-bold text-foreground">John Doe</h2>
+            <h2 className="text-xl font-bold text-foreground">{user?.email || 'User'}</h2>
             <p className="text-sm text-muted-foreground">Sales Representative</p>
-            <p className="text-xs text-primary mt-1">Premium Plan</p>
+            <p className="text-xs text-primary mt-1">Active</p>
           </div>
         </div>
       </div>
@@ -112,6 +125,7 @@ const SettingsPanel = () => {
       <div className="px-4">
         <motion.button
           whileTap={{ scale: 0.98 }}
+          onClick={handleSignOut}
           className="w-full glass-card p-4 flex items-center justify-center gap-2 text-destructive hover:bg-destructive/10 transition-colors"
         >
           <LogOut className="w-5 h-5" />

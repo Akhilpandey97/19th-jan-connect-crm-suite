@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCallLogs } from '@/hooks/useCallLogs';
-import { useLeadActivities } from '@/hooks/useLeadActivities';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import MobileLayout from '@/components/MobileLayout';
 import BottomNav from '@/components/BottomNav';
 import LeadsPanel from '@/components/LeadsPanel';
@@ -15,6 +15,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('leads');
   const { toast } = useToast();
   const { createCallLog } = useCallLogs();
+  const { user } = useAuth();
 
   // Format phone for India
   const formatPhone = (phone: string): string => {
@@ -31,6 +32,8 @@ const Index = () => {
 
   // Create activity in database
   const createActivity = async (leadId: string, type: string, title: string, description?: string) => {
+    if (!user) return;
+    
     try {
       await supabase.from('lead_activities').insert({
         lead_id: leadId,
@@ -38,6 +41,7 @@ const Index = () => {
         title,
         description: description || null,
         metadata: {},
+        user_id: user.id,
       });
     } catch (error) {
       console.error('Failed to create activity:', error);

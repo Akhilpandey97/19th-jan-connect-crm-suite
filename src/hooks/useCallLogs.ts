@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type CallType = 'incoming' | 'outgoing' | 'missed';
 
@@ -15,11 +16,13 @@ export interface CallLogEntry {
   notes: string | null;
   outcome: string | null;
   created_at: string;
+  user_id: string | null;
 }
 
 export const useCallLogs = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: callLogs = [], isLoading, error } = useQuery({
     queryKey: ['call_logs'],
@@ -32,6 +35,7 @@ export const useCallLogs = () => {
       if (error) throw error;
       return data as CallLogEntry[];
     },
+    enabled: !!user,
   });
 
   // Real-time subscription
@@ -57,10 +61,12 @@ export const useCallLogs = () => {
   }, [queryClient]);
 
   const createCallLog = useMutation({
-    mutationFn: async (callLog: Omit<CallLogEntry, 'id' | 'created_at'>) => {
+    mutationFn: async (callLog: Omit<CallLogEntry, 'id' | 'created_at' | 'user_id'>) => {
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('call_logs')
-        .insert(callLog)
+        .insert({ ...callLog, user_id: user.id })
         .select()
         .single();
 
