@@ -38,8 +38,14 @@ import {
   UserX,
   BarChart3,
   Target,
+  FileSpreadsheet,
+  UserPlus,
+  Link2,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import LeadImport from '@/components/admin/LeadImport';
+import LeadAssignment from '@/components/admin/LeadAssignment';
+import CRMConnect from '@/components/admin/CRMConnect';
 
 interface Profile {
   id: string;
@@ -281,10 +287,22 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               Sales Users
+            </TabsTrigger>
+            <TabsTrigger value="leads" className="gap-2">
+              <UserPlus className="w-4 h-4" />
+              Lead Assignment
+            </TabsTrigger>
+            <TabsTrigger value="import" className="gap-2">
+              <FileSpreadsheet className="w-4 h-4" />
+              Import Leads
+            </TabsTrigger>
+            <TabsTrigger value="crm" className="gap-2">
+              <Link2 className="w-4 h-4" />
+              CRM Connect
             </TabsTrigger>
             <TabsTrigger value="reports" className="gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -432,6 +450,21 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Lead Assignment Tab */}
+          <TabsContent value="leads">
+            <LeadAssignment />
+          </TabsContent>
+
+          {/* Import Leads Tab */}
+          <TabsContent value="import">
+            <LeadImport />
+          </TabsContent>
+
+          {/* CRM Connect Tab */}
+          <TabsContent value="crm">
+            <CRMConnect />
           </TabsContent>
 
           <TabsContent value="reports">
