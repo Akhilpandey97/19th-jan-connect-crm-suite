@@ -33,12 +33,34 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
         } else {
           navigate('/auth');
         }
-      } else if (requiredRole === 'admin' && role !== 'admin') {
-        // Admin route requires admin role specifically
-        navigate('/admin/login');
-      } else if (requiredRole === 'sales' && role !== 'sales' && role !== 'admin') {
-        // Sales route - allow both sales and admin
-        navigate('/auth');
+        return;
+      }
+
+      // Admin users should ONLY access admin routes
+      if (role === 'admin') {
+        if (requiredRole !== 'admin') {
+          // Admin trying to access sales app - redirect to admin dashboard
+          navigate('/admin');
+        }
+        return;
+      }
+
+      // Sales users should ONLY access sales routes
+      if (role === 'sales') {
+        if (requiredRole === 'admin') {
+          // Sales user trying to access admin - redirect to sales app
+          navigate('/');
+        }
+        return;
+      }
+
+      // User has no role assigned yet - check what they're trying to access
+      if (!role) {
+        if (requiredRole === 'admin') {
+          navigate('/admin/login');
+        } else {
+          navigate('/auth');
+        }
       }
     }
   }, [user, role, isLoading, isRoleLoading, requiredRole, navigate]);
@@ -55,12 +77,18 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return null;
   }
 
-  // Check role access
-  if (requiredRole === 'admin' && role !== 'admin') {
+  // Admin can only access admin routes
+  if (role === 'admin' && requiredRole !== 'admin') {
     return null;
   }
 
-  if (requiredRole === 'sales' && role !== 'sales' && role !== 'admin') {
+  // Sales can only access sales routes
+  if (role === 'sales' && requiredRole === 'admin') {
+    return null;
+  }
+
+  // No role - deny access
+  if (!role) {
     return null;
   }
 
