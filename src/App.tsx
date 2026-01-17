@@ -25,18 +25,18 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Sales User Routes */}
+              {/* Sales Mobile App Routes */}
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="sales">
                     <Index />
                   </ProtectedRoute>
                 }
               />
 
-              {/* Admin Routes */}
+              {/* Admin Web Dashboard Routes */}
               <Route path="/admin/login" element={<AdminAuth />} />
               <Route
                 path="/admin"

@@ -27,13 +27,14 @@ const AdminAuth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && !isLoading) {
+    if (user && !isLoading && role) {
       if (role === 'admin') {
         navigate('/admin');
-      } else if (role === 'sales') {
+      } else {
+        // Non-admin user - sign them out and show error
         toast({
           title: 'Access Denied',
-          description: 'You do not have admin privileges.',
+          description: 'This portal is for administrators only.',
           variant: 'destructive',
         });
       }
