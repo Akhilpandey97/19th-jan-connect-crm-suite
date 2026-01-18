@@ -315,7 +315,7 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
                     className="mb-4 p-4 glass-card space-y-3"
                   >
                     <div className="flex gap-2 flex-wrap">
-                      {(['call', 'email', 'meeting', 'note'] as ActivityType[]).map((type) => (
+                      {(['call', 'meeting', 'note'] as ActivityType[]).map((type) => (
                         <button
                           key={type}
                           onClick={() => setActivityForm({ ...activityForm, type })}

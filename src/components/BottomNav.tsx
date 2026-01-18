@@ -10,7 +10,6 @@ const navItems = [
   { id: 'leads', icon: Target, label: 'Leads' },
   { id: 'activity', icon: Activity, label: 'Activity' },
   { id: 'dialpad', icon: Grid3X3, label: 'Dial' },
-  { id: 'integrations', icon: Phone, label: 'CRMs' },
   { id: 'settings', icon: Settings, label: 'Settings' },
 ];
 
