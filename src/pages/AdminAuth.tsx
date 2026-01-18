@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Mail, Lock, LogIn } from 'lucide-react';
+import { Shield, Mail, Lock, LogIn, Phone } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,10 +31,10 @@ const AdminAuth = () => {
       if (role === 'admin') {
         navigate('/admin');
       } else {
-        // Non-admin user - sign them out and show error
+        // Non-admin user - show error
         toast({
           title: 'Access Denied',
-          description: 'This portal is for administrators only.',
+          description: 'This portal is for administrators only. Please use the Sales login.',
           variant: 'destructive',
         });
       }
@@ -165,6 +165,16 @@ const AdminAuth = () => {
                 )}
               </Button>
             </form>
+
+            <div className="mt-6 text-center pt-4 border-t">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+                Sales App Login
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

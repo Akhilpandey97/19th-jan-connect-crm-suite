@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Phone, User, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
+import { Phone, User, Mail, Lock, LogIn, UserPlus, Shield } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -35,15 +35,20 @@ const Auth = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { signIn, signUp, user, isLoading } = useAuth();
+  const { signIn, signUp, user, role, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && !isLoading) {
-      navigate('/');
+    if (user && !isLoading && role) {
+      if (role === 'sales') {
+        navigate('/');
+      } else if (role === 'admin') {
+        // Admin users should go to admin dashboard
+        navigate('/admin');
+      }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, role, isLoading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -87,7 +92,6 @@ const Auth = () => {
             title: 'Welcome back!',
             description: 'You have successfully logged in.',
           });
-          navigate('/');
         }
       } else {
         const result = signUpSchema.safeParse(formData);
@@ -122,9 +126,8 @@ const Auth = () => {
         } else {
           toast({
             title: 'Account Created!',
-            description: 'Welcome! Your account has been created successfully.',
+            description: 'Welcome! Your account has been created. Please wait for admin to assign you a role.',
           });
-          navigate('/');
         }
       }
     } catch (err) {
@@ -156,17 +159,17 @@ const Auth = () => {
           </div>
           <h1 className="text-2xl font-bold text-foreground">Sales CRM</h1>
           <p className="text-muted-foreground mt-1">
-            {isLogin ? 'Sign in to your account' : 'Create your sales account'}
+            {isLogin ? 'Sign in to your sales account' : 'Create your sales account'}
           </p>
         </div>
 
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle>{isLogin ? 'Welcome Back' : 'Get Started'}</CardTitle>
+            <CardTitle>{isLogin ? 'Sales Login' : 'Sales Sign Up'}</CardTitle>
             <CardDescription>
               {isLogin
-                ? 'Enter your credentials to access your account'
-                : 'Fill in your details to create an account'}
+                ? 'Enter your credentials to access the mobile sales app'
+                : 'Fill in your details to create a sales account'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -268,7 +271,7 @@ const Auth = () => {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-3">
               <button
                 type="button"
                 onClick={() => {
@@ -281,6 +284,16 @@ const Auth = () => {
                   ? "Don't have an account? Sign up"
                   : 'Already have an account? Sign in'}
               </button>
+
+              <div className="pt-4 border-t">
+                <Link
+                  to="/admin/login"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin Portal Login
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
