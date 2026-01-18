@@ -41,9 +41,11 @@ import {
   FileSpreadsheet,
   UserPlus,
   Link2,
+  ShieldCheck,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import LeadImport from '@/components/admin/LeadImport';
+import UserRoleManagement from '@/components/admin/UserRoleManagement';
 import LeadAssignment from '@/components/admin/LeadAssignment';
 import CRMConnect from '@/components/admin/CRMConnect';
 
@@ -292,6 +294,10 @@ const AdminDashboard = () => {
               <Users className="w-4 h-4" />
               Sales Users
             </TabsTrigger>
+            <TabsTrigger value="roles" className="gap-2">
+              <ShieldCheck className="w-4 h-4" />
+              Role Management
+            </TabsTrigger>
             <TabsTrigger value="leads" className="gap-2">
               <UserPlus className="w-4 h-4" />
               Lead Assignment
@@ -450,6 +456,11 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Role Management Tab */}
+          <TabsContent value="roles">
+            <UserRoleManagement users={users} currentUserId={user?.id || ''} />
           </TabsContent>
 
           {/* Lead Assignment Tab */}
