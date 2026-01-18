@@ -93,10 +93,13 @@ class CallStatePlugin : Plugin() {
                     TelephonyManager.EXTRA_STATE_OFFHOOK -> {
                         // Call answered (either incoming or outgoing)
                         if (lastCallState == TelephonyManager.CALL_STATE_IDLE) {
-                            // Outgoing call
-                            // Note: Getting outgoing number is restricted on Android 9+
-                            // You may need to use PROCESS_OUTGOING_CALLS permission
-                            // or fetch from call log after the call
+                            // Outgoing call detected
+                            // LIMITATION: Getting outgoing number is restricted on Android 9+
+                            // The incomingNumber field will be null for outgoing calls.
+                            // To get the actual number, you would need:
+                            // 1. PROCESS_OUTGOING_CALLS permission (deprecated in Android 10+)
+                            // 2. Or fetch from call log after the call using READ_CALL_LOG permission
+                            // For now, we mark it as "Unknown" and the hook will try to match from call log
                             currentPhoneNumber = incomingNumber ?: "Unknown"
                             notifyCallStarted(currentPhoneNumber ?: "Unknown", "outgoing")
                         }

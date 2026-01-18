@@ -144,38 +144,43 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
     }
   };
 
+  const uploadRecordingIfNeeded = async (): Promise<Record<string, unknown>> => {
+    if (!recordingFilePath || activityForm.type !== 'call') {
+      return {};
+    }
+
+    setIsUploading(true);
+    try {
+      const uploadResult = await uploadRecordingToSupabase(recordingFilePath);
+      toast({
+        title: 'Recording Uploaded',
+        description: 'Recording attached to activity',
+      });
+      return {
+        recording: {
+          url: uploadResult.url,
+          duration,
+          fileName: uploadResult.fileName,
+        },
+      };
+    } catch (error) {
+      console.error('Error uploading recording:', error);
+      toast({
+        title: 'Upload Failed',
+        description: 'Activity will be saved without recording',
+        variant: 'destructive',
+      });
+      return {};
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleCreateActivity = async () => {
     if (!activityForm.title) return;
 
-    let metadata: Record<string, unknown> = {};
-
-    // If there's a recording, upload it first
-    if (recordingFilePath && activityForm.type === 'call') {
-      setIsUploading(true);
-      try {
-        const uploadResult = await uploadRecordingToSupabase(recordingFilePath);
-        metadata = {
-          recording: {
-            url: uploadResult.url,
-            duration,
-            fileName: uploadResult.fileName,
-          },
-        };
-        toast({
-          title: 'Recording Uploaded',
-          description: 'Recording attached to activity',
-        });
-      } catch (error) {
-        console.error('Error uploading recording:', error);
-        toast({
-          title: 'Upload Failed',
-          description: 'Activity will be saved without recording',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsUploading(false);
-      }
-    }
+    // Upload recording if present
+    const metadata = await uploadRecordingIfNeeded();
 
     createActivity.mutate({
       lead_id: lead.id,
@@ -475,7 +480,8 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
                   activities.map((activity, index) => {
                     const metadata = activity.metadata as Record<string, unknown> | null;
                     const recording = metadata?.recording as { url: string; duration: number } | undefined;
-                    const hasRecording = recording?.url;
+                    // Validate recording URL is from Supabase
+                    const hasRecording = recording?.url && recording.url.includes(import.meta.env.VITE_SUPABASE_URL || 'supabase.co');
 
                     return (
                       <motion.div

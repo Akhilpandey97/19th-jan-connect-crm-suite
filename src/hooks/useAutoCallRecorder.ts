@@ -61,6 +61,9 @@ export const useAutoCallRecorder = () => {
             return;
           }
 
+          // Store call info before clearing ref
+          const callInfo = { ...currentCallRef.current };
+
           try {
             // Stop recording
             const result = await stopRecording();
@@ -76,7 +79,7 @@ export const useAutoCallRecorder = () => {
             }
 
             // Calculate duration
-            const duration = result.duration || Math.floor((Date.now() - currentCallRef.current.startTime) / 1000);
+            const duration = result.duration || Math.floor((Date.now() - callInfo.startTime) / 1000);
 
             // Upload to Supabase
             toast({
@@ -87,10 +90,12 @@ export const useAutoCallRecorder = () => {
             const uploadResult = await uploadRecordingToSupabase(result.filePath);
 
             // Try to match phone number to a lead
+            // Normalize phone number by removing all non-digits for better matching
+            const normalizedPhone = event.phone.replace(/\D/g, '');
             const { data: leads } = await supabase
               .from('leads')
               .select('id, name, phone')
-              .ilike('phone', `%${event.phone.replace(/\D/g, '')}%`)
+              .or(`phone.ilike.%${normalizedPhone}%,phone.ilike.%${event.phone}%`)
               .limit(1);
 
             const matchedLead = leads && leads.length > 0 ? leads[0] : null;
@@ -100,8 +105,8 @@ export const useAutoCallRecorder = () => {
               lead_id: matchedLead?.id || null,
               type: 'call',
               title: matchedLead 
-                ? `${currentCallRef.current.direction === 'outgoing' ? 'Outgoing' : 'Incoming'} call with ${matchedLead.name}`
-                : `${currentCallRef.current.direction === 'outgoing' ? 'Outgoing' : 'Incoming'} call to ${event.phone}`,
+                ? `${callInfo.direction === 'outgoing' ? 'Outgoing' : 'Incoming'} call with ${matchedLead.name}`
+                : `${callInfo.direction === 'outgoing' ? 'Outgoing' : 'Incoming'} call to ${event.phone}`,
               description: `Automatic recording - ${duration}s`,
               metadata: {
                 recording: {
@@ -110,7 +115,7 @@ export const useAutoCallRecorder = () => {
                   fileName: uploadResult.fileName,
                 },
                 phone: event.phone,
-                direction: currentCallRef.current.direction,
+                direction: callInfo.direction,
                 autoRecorded: true,
               },
             };
