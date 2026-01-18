@@ -78,8 +78,8 @@ export const useAutoCallRecorder = () => {
               return;
             }
 
-            // Calculate duration
-            const duration = result.duration || Math.floor((Date.now() - callInfo.startTime) / 1000);
+            // Calculate duration - use nullish coalescing to handle 0 duration correctly
+            const duration = result.duration ?? Math.floor((Date.now() - callInfo.startTime) / 1000);
 
             // Upload to Supabase
             toast({
@@ -92,10 +92,12 @@ export const useAutoCallRecorder = () => {
             // Try to match phone number to a lead
             // Normalize phone number by removing all non-digits for better matching
             const normalizedPhone = event.phone.replace(/\D/g, '');
+            
+            // Use Supabase query builder with proper escaping
             const { data: leads } = await supabase
               .from('leads')
               .select('id, name, phone')
-              .or(`phone.ilike.%${normalizedPhone}%,phone.ilike.%${event.phone}%`)
+              .or(`phone.ilike.%${normalizedPhone.replace(/%/g, '\\%')}%,phone.ilike.%${event.phone.replace(/%/g, '\\%')}%`)
               .limit(1);
 
             const matchedLead = leads && leads.length > 0 ? leads[0] : null;

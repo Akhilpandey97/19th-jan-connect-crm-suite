@@ -144,7 +144,7 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
     }
   };
 
-  const uploadRecordingIfNeeded = async (): Promise<Record<string, unknown>> => {
+  const uploadRecordingIfNeeded = async (): Promise<{ recording?: { url: string; duration: number; fileName: string } }> => {
     if (!recordingFilePath || activityForm.type !== 'call') {
       return {};
     }
@@ -480,8 +480,19 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
                   activities.map((activity, index) => {
                     const metadata = activity.metadata as Record<string, unknown> | null;
                     const recording = metadata?.recording as { url: string; duration: number } | undefined;
-                    // Validate recording URL is from Supabase
-                    const hasRecording = recording?.url && recording.url.includes(import.meta.env.VITE_SUPABASE_URL || 'supabase.co');
+                    
+                    // Validate recording URL is from Supabase using proper URL parsing
+                    let hasRecording = false;
+                    if (recording?.url) {
+                      try {
+                        const recordingUrl = new URL(recording.url);
+                        const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL || 'https://supabase.co');
+                        hasRecording = recordingUrl.origin === supabaseUrl.origin || recordingUrl.hostname.endsWith('.supabase.co');
+                      } catch {
+                        // Invalid URL, don't show recording
+                        hasRecording = false;
+                      }
+                    }
 
                     return (
                       <motion.div

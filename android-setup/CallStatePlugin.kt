@@ -101,7 +101,7 @@ class CallStatePlugin : Plugin() {
                             // 2. Or fetch from call log after the call using READ_CALL_LOG permission
                             // For now, we mark it as "Unknown" and the hook will try to match from call log
                             currentPhoneNumber = incomingNumber ?: "Unknown"
-                            notifyCallStarted(currentPhoneNumber ?: "Unknown", "outgoing")
+                            notifyCallStarted(currentPhoneNumber, "outgoing")
                         }
                         lastCallState = TelephonyManager.CALL_STATE_OFFHOOK
                     }
@@ -127,6 +127,7 @@ class CallStatePlugin : Plugin() {
                 context.unregisterReceiver(it)
             } catch (e: Exception) {
                 // Receiver was not registered or already unregistered
+                android.util.Log.w("CallStatePlugin", "Failed to unregister call state receiver", e)
             }
             callReceiver = null
         }
