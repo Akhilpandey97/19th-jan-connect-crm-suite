@@ -4,6 +4,17 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+## Admin Setup
+
+To create an admin user for this CRM system, see [ADMIN_SETUP.md](./ADMIN_SETUP.md) for detailed instructions.
+
+Quick start:
+```bash
+npm run create-admin
+```
+
+This will create an admin user with email: `ap79020@gmail.com`
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
