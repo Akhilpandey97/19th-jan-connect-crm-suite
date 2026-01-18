@@ -28,6 +28,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Shield,
   Users,
   Phone,
@@ -79,6 +86,7 @@ const AdminDashboard = () => {
     email: '',
     password: '',
     fullName: '',
+    role: 'sales' as 'admin' | 'sales',
   });
 
   useEffect(() => {
@@ -136,9 +144,9 @@ const AdminDashboard = () => {
     enabled: role === 'admin' && users.length > 0,
   });
 
-  // Create new sales user
+  // Create new user with role
   const createUser = useMutation({
-    mutationFn: async (data: { email: string; password: string; fullName: string }) => {
+    mutationFn: async (data: { email: string; password: string; fullName: string; role: 'admin' | 'sales' }) => {
       // Create user via Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -151,10 +159,10 @@ const AdminDashboard = () => {
       if (authError) throw authError;
       if (!authData.user) throw new Error('Failed to create user');
 
-      // Assign sales role
+      // Assign selected role
       const { error: roleError } = await supabase.from('user_roles').insert({
         user_id: authData.user.id,
-        role: 'sales',
+        role: data.role,
       });
 
       if (roleError) throw roleError;
@@ -163,9 +171,9 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: 'User Created', description: 'Sales user has been created successfully.' });
+      toast({ title: 'User Created', description: 'User has been created successfully.' });
       setIsCreateDialogOpen(false);
-      setNewUserData({ email: '', password: '', fullName: '' });
+      setNewUserData({ email: '', password: '', fullName: '', role: 'sales' });
     },
     onError: (error: Error) => {
       toast({
@@ -382,6 +390,23 @@ const AdminDashboard = () => {
                           minLength={6}
                           required
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newRole">Role</Label>
+                        <Select
+                          value={newUserData.role}
+                          onValueChange={(value: 'admin' | 'sales') =>
+                            setNewUserData((prev) => ({ ...prev, role: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sales">Sales</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <Button type="submit" className="w-full" disabled={createUser.isPending}>
                         {createUser.isPending ? 'Creating...' : 'Create User'}
