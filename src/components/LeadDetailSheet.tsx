@@ -14,10 +14,14 @@ import {
   ListTodo,
   Activity,
   X,
+  Mic,
+  Square,
 } from 'lucide-react';
 import { Lead, LeadStatus } from '@/hooks/useLeads';
 import { useLeadTasks, TaskStatus } from '@/hooks/useLeadTasks';
 import { useLeadActivities, ActivityType } from '@/hooks/useLeadActivities';
+import { useNativeAudioRecorder } from '@/hooks/useNativeAudioRecorder';
+import { uploadRecordingToSupabase } from '@/utils/uploadRecordingToSupabase';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 interface LeadDetailSheetProps {
   lead: Lead | null;
@@ -83,11 +88,15 @@ const allStatuses: LeadStatus[] = ['new', 'contacted', 'qualified', 'proposal', 
 const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusChange }: LeadDetailSheetProps) => {
   const { tasks, createTask } = useLeadTasks(lead?.id ?? null);
   const { activities, createActivity } = useLeadActivities(lead?.id ?? null);
+  const { startRecording, stopRecording, isRecording, duration, isNative } = useNativeAudioRecorder();
+  const { toast } = useToast();
 
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [taskForm, setTaskForm] = useState({ title: '', description: '', due_date: '' });
   const [activityForm, setActivityForm] = useState({ type: 'note' as ActivityType, title: '', description: '' });
+  const [recordingFilePath, setRecordingFilePath] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!lead) return null;
 
@@ -119,16 +128,65 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
     });
   };
 
-  const handleCreateActivity = () => {
+  const handleStartRecording = async () => {
+    const timestamp = Date.now();
+    const filename = `manual_recording_${timestamp}.m4a`;
+    const result = await startRecording(filename);
+    if (result) {
+      setRecordingFilePath(result.filePath);
+    }
+  };
+
+  const handleStopRecording = async () => {
+    const result = await stopRecording();
+    if (result) {
+      setRecordingFilePath(result.filePath);
+    }
+  };
+
+  const handleCreateActivity = async () => {
     if (!activityForm.title) return;
+
+    let metadata: Record<string, unknown> = {};
+
+    // If there's a recording, upload it first
+    if (recordingFilePath && activityForm.type === 'call') {
+      setIsUploading(true);
+      try {
+        const uploadResult = await uploadRecordingToSupabase(recordingFilePath);
+        metadata = {
+          recording: {
+            url: uploadResult.url,
+            duration,
+            fileName: uploadResult.fileName,
+          },
+        };
+        toast({
+          title: 'Recording Uploaded',
+          description: 'Recording attached to activity',
+        });
+      } catch (error) {
+        console.error('Error uploading recording:', error);
+        toast({
+          title: 'Upload Failed',
+          description: 'Activity will be saved without recording',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
     createActivity.mutate({
       lead_id: lead.id,
       type: activityForm.type,
       title: activityForm.title,
       description: activityForm.description || null,
-      metadata: {},
+      metadata,
     });
+
     setActivityForm({ type: 'note', title: '', description: '' });
+    setRecordingFilePath(null);
     setIsAddingActivity(false);
   };
 
@@ -329,6 +387,57 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
                         </button>
                       ))}
                     </div>
+                    
+                    {/* Recording controls for call type */}
+                    {activityForm.type === 'call' && isNative && (
+                      <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-lg">
+                        {!isRecording && !recordingFilePath && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={handleStartRecording}
+                            className="gap-2"
+                          >
+                            <Mic className="w-4 h-4" />
+                            Record
+                          </Button>
+                        )}
+                        {isRecording && (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              onClick={handleStopRecording}
+                              className="gap-2"
+                            >
+                              <Square className="w-4 h-4" />
+                              Stop
+                            </Button>
+                            <span className="text-sm text-muted-foreground">
+                              Recording... {duration}s
+                            </span>
+                          </>
+                        )}
+                        {!isRecording && recordingFilePath && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-success/20 text-success">
+                              Recording ready ({duration}s)
+                            </Badge>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setRecordingFilePath(null)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <Input
                       placeholder="Activity title"
                       value={activityForm.title}
@@ -341,10 +450,17 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
                       rows={2}
                     />
                     <div className="flex gap-2">
-                      <Button onClick={handleCreateActivity} size="sm" disabled={!activityForm.title}>
-                        Add
+                      <Button 
+                        onClick={handleCreateActivity} 
+                        size="sm" 
+                        disabled={!activityForm.title || isUploading}
+                      >
+                        {isUploading ? 'Uploading...' : 'Add'}
                       </Button>
-                      <Button onClick={() => setIsAddingActivity(false)} size="sm" variant="ghost">
+                      <Button onClick={() => {
+                        setIsAddingActivity(false);
+                        setRecordingFilePath(null);
+                      }} size="sm" variant="ghost">
                         Cancel
                       </Button>
                     </div>
@@ -356,28 +472,45 @@ const LeadDetailSheet = ({ lead, isOpen, onClose, onCall, onWhatsApp, onStatusCh
                 {activities.length === 0 ? (
                   <p className="text-center py-8 text-muted-foreground">No activities yet</p>
                 ) : (
-                  activities.map((activity, index) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex gap-3 p-3 glass-card"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                        {activityIcons[activity.type as ActivityType] || <Activity className="w-4 h-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{activity.title}</p>
-                        {activity.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{activity.description}</p>
-                        )}
-                        <p className="text-[10px] text-muted-foreground/70 mt-1">
-                          {format(new Date(activity.created_at), 'MMM d, yyyy h:mm a')}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))
+                  activities.map((activity, index) => {
+                    const metadata = activity.metadata as Record<string, unknown> | null;
+                    const recording = metadata?.recording as { url: string; duration: number } | undefined;
+                    const hasRecording = recording?.url;
+
+                    return (
+                      <motion.div
+                        key={activity.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex gap-3 p-3 glass-card"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                          {activityIcons[activity.type as ActivityType] || <Activity className="w-4 h-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground">{activity.title}</p>
+                          {activity.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{activity.description}</p>
+                          )}
+                          {hasRecording && recording && (
+                            <div className="mt-2">
+                              <audio controls className="w-full max-w-sm h-8">
+                                <source src={recording.url} type="audio/m4a" />
+                                Your browser does not support the audio element.
+                              </audio>
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                Duration: {recording.duration}s
+                              </p>
+                            </div>
+                          )}
+                          <p className="text-[10px] text-muted-foreground/70 mt-1">
+                            {format(new Date(activity.created_at), 'MMM d, yyyy h:mm a')}
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })
                 )}
               </div>
             </TabsContent>

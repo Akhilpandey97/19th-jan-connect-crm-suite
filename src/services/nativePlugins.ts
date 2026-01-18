@@ -29,9 +29,23 @@ export interface AudioRecorderPlugin {
   checkPermissions(): Promise<{ microphone: 'granted' | 'denied' }>;
 }
 
+export interface CallStateEvent {
+  phone: string;
+  direction: 'incoming' | 'outgoing';
+}
+
+export interface CallStatePlugin {
+  addListener(
+    eventName: 'callStarted' | 'callEnded',
+    listenerFunc: (event: CallStateEvent) => void
+  ): Promise<{ remove: () => void }>;
+  removeAllListeners(): Promise<void>;
+}
+
 // Register native plugins
 export const CallLogPlugin = registerPlugin<CallLogPlugin>('CallLogPlugin');
 export const AudioRecorderPlugin = registerPlugin<AudioRecorderPlugin>('AudioRecorderPlugin');
+export const CallStatePlugin = registerPlugin<CallStatePlugin>('CallStatePlugin');
 
 // Helper to check if running in native app
 export const isNativeApp = (): boolean => {
