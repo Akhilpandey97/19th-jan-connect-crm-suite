@@ -45,6 +45,13 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Admin credentials as specified in requirements
+// NOTE: These are the initial setup credentials for the first admin user.
+// After running this script, you should:
+// 1. Log in with these credentials
+// 2. Change the password immediately
+// 3. Enable two-factor authentication if available
+// For production use, consider using environment variables for credentials.
 const ADMIN_EMAIL = 'ap79020@gmail.com';
 const ADMIN_PASSWORD = 'Login@12';
 const ADMIN_FULL_NAME = 'Admin User';
